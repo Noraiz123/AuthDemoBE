@@ -1,23 +1,27 @@
-const express = require('express');
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import authRoute from './routes/authRoutes.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 4050;
+
+app.use(express.json({ limit: '30mb', extended: true }));
+app.use(cors());
+
 app.get('/', (req, res) => {
   res.send(`Hey it's working !!`);
 });
-app.listen(PORT, () => console.log(`server up and running at ${PORT}`));
-const dotenv = require('dotenv');
-const mongoose = require('mongoose');
-const cors = require('cors');
-//IMPORT ROUTES
-const authRoute = require('./routes/authRoutes.js');
-//ACCESSING THE ENVIRONMENT VARIABLES
-dotenv.config();
-//CONNECTION TO DATABASE
-mongoose.set({ strictQuery: true });
-mongoose.connect(process.env.DB_CONNECT, { useNewUrlParser: true, useUnifiedTopology: true }, () =>
-  console.log('connected to db ')
-);
-//MIDDLEWARE
-app.use(express.json(), cors());
-//ROUTE MIDDLEWARE
-app.use('/api/users', authRoute);
+
+app.use('/api/user', authRoute);
+
+const CONNECTION_URL = process.env.DB_CONNECT;
+const PORT = process.env.PORT || 4050;
+
+mongoose
+  .connect(CONNECTION_URL, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => app.listen(PORT, () => console.log(`Server Running on Port: http://localhost:${PORT}`)))
+  .catch((error) => console.log(`${error} did not connect`));
+
+mongoose.set('useFindAndModify', false);
